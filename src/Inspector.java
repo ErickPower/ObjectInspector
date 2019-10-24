@@ -55,29 +55,72 @@ public class Inspector {
 				System.out.println(tabs + "--" + constructors[i].getName());
 				
 /*************** parameters ******************************/
-				Class[] params = constructors[i].getParameterTypes();
-				for(int j = 0; j < params.length; j++) {
-					System.out.println(tabs + "---" + params[j].getName());
+				Class[] constParams = constructors[i].getParameterTypes();
+				for(int j = 0; j < constParams.length; j++) {
+					System.out.println(tabs + "---" + constParams[j].getName());
 				}
 				
 /*************** modifiers ******************************/
-				int modif = constructors[i].getModifiers();
-				System.out.println(tabs + "----" + constructors[i].getName() + " modifier: " + Modifier.toString(modif));
+				int constModifier = constructors[i].getModifiers();
+				System.out.println(tabs + "----" + constructors[i].getName() + " modifier: " + Modifier.toString(constModifier));
 			}
 			
 
-
+/*************** METHODS ******************************/
 			
-			//methods of the class
-			    //name
-			    //exceptions thrown
-			    //parameter types
-			    //return type
-			    //modifiers
+			Method[] methods = c.getDeclaredMethods();
+			if(methods.length > 0) {
+				System.out.println(tabs + "Methods of " + c.getName());
+			}
 			
-			//fields the class declares
-			    //name
-			    //type
+/*************** name******************************/
+			for(int i = 0; i < methods.length; i++) {
+				System.out.println(tabs + "-" + methods[i].getName());
+				
+/*************** exceptions thrown ******************************/
+				Class[] exceptions = methods[i].getExceptionTypes();
+				for(int j = 0; j < exceptions.length; j++) {
+					System.out.println(tabs + "--" + exceptions[j].getName());
+				}
+			
+/*************** parameters ******************************/
+				
+				Class[] methParams = methods[i].getParameterTypes();
+				for(int j = 0; j < methParams.length; j++) {
+					System.out.println(tabs + "---" + methParams[j].getName());
+				}
+				
+/*************** return type ******************************/
+			    Class methReturn = methods[i].getReturnType();
+			    System.out.println(tabs + " " + methReturn.getName());
+			    
+/*************** modifiers ******************************/
+			    int methModifier = methods[i].getModifiers();
+			    System.out.println(tabs + "-" + methods[i].getName() + " modifier: " + Modifier.toString(methModifier));
+			}
+			
+/*************** FIELDS ******************************/
+			
+			Field[] fields = c.getDeclaredFields();
+			if(fields.length > 0) {
+				System.out.println(tabs + "Fields of " + c.getName());
+			}
+/*************** name ******************************/
+			
+			for(int i = 0; i < fields.length; i++) {
+				System.out.println(tabs + " " + fields[i].getName());
+				
+/*************** type ******************************/
+				System.out.println(tabs + "  " + fields[i].getType().getName());
+				
+/*************** modifiers ******************************/
+				int fieldModifier = fields[i].getModifiers();
+				System.out.println(tabs + "  " + fields[i].getName() + " modifier: " + Modifier.toString(fieldModifier));
+				
+/*************** value ******************************/
+				
+				
+			}
 			    //modifiers
 			    //current val of each field
 			        //if field is an object ref, and recursive is set to false,
