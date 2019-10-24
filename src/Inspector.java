@@ -8,6 +8,8 @@ public class Inspector {
 		inspectClass(c, obj, recursive, 0);
 	}
 	
+	
+	//TODO: change to pass current object instead of null
 	private void inspectClass(Class c, Object obj, boolean recursive, int depth) {
 		if(c == null) {
 			c = obj.getClass();
@@ -121,7 +123,6 @@ public class Inspector {
 				
 				
 			}
-			    //modifiers
 			    //current val of each field
 			        //if field is an object ref, and recursive is set to false,
 			        //  print out "reference value" directly
@@ -129,7 +130,7 @@ public class Inspector {
 			
 			    //if recursive is true, inspect each field/array obj as well.
 			
-			Field[] fields = c.getDeclaredFields();
+//			Field[] fields = c.getDeclaredFields();
 		}
 		catch (Exception e){
 			System.out.println("exception: " + e);
