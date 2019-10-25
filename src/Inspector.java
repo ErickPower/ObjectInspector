@@ -4,12 +4,10 @@ import java.io.*;
 public class Inspector {
 	
 	public void inspect(Object obj, boolean recursive) {
-		Class c = obj.getClass();
+		Class c = null /* obj.getClass() */;
 		inspectClass(c, obj, recursive, 0);
 	}
 	
-	
-	//TODO: change to pass current object instead of null
 	private void inspectClass(Class c, Object obj, boolean recursive, int depth) {
 		try {
 			//pass c as null when inspecting field objects
@@ -156,14 +154,14 @@ public class Inspector {
 						//Dealing with array
 						if(instance.getClass().isArray()) {
 							int length = Array.getLength(instance);
-							System.out.print(" = [");
+							System.out.print( " = [");
 							for ( int k = 0; k < length; k++ ) {
 								Object element = Array.get(instance, k);
-								if(element.getClass().isPrimitive()) {
+								if(element == null || element.getClass().isPrimitive()) {
 									System.out.print(element);
 								}
 								else {
-									System.out.println(Integer.toHexString(System.identityHashCode(element)));
+									System.out.print(element.toString());
 								}
 								if(k < length-1) {
 									System.out.print(",");
@@ -188,11 +186,6 @@ public class Inspector {
 							System.out.println(tabs + "Stepping into field: " + fields[i].getName()+ "@" + Integer.toHexString(System.identityHashCode(instance)));
 							inspectClass(null, instance, recursive, depth+1);
 						}
-						
-						
-						
-						
-						
 					}
 					else {
 						System.out.println(" = " + instance);
@@ -201,9 +194,8 @@ public class Inspector {
 			}
 		}
 		catch (Exception e){
-			System.out.println("Program quit due to exception: " + e);
+			System.out.println("Exception: " + e);
 			e.printStackTrace();
 		}
-		
 	}
 }
