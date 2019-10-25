@@ -12,7 +12,16 @@ public class Inspector {
 	//TODO: change to pass current object instead of null
 	private void inspectClass(Class c, Object obj, boolean recursive, int depth) {
 		try {
-			recursive = false;
+			//pass c as null when inspecting field objects
+			if(c == null){
+				c = obj.getClass();
+			}
+			
+			//If the object is a class, then it is an interface, and no instance of the object
+			if(obj.getClass().isInstance(Class.class)) {
+				obj = null;
+			}
+			
 			String tabs = new String(new char[depth]).replace("\0", "\t"); //Code from https://stackoverflow.com/a/4903603
 			
 /*************** DECLARING CLASS ******************************/
@@ -35,7 +44,7 @@ public class Inspector {
 				System.out.println(tabs + "Interfaces of " + c.getName());
 			}
 			for(int i = 0; i < interfaces.length; i++) {
-				System.out.println(tabs + "-" + interfaces[i].getName());
+				System.out.println(tabs + " " + interfaces[i].getName());
 			}
 
 /*************** explore interfaces ******************************/
@@ -43,7 +52,7 @@ public class Inspector {
 				System.out.println(tabs + "Stepping into interface: " + interfaces[i].getName());
 				inspectClass(interfaces[i], obj, recursive, depth+1);
 			}
-			
+			System.out.println("");
 			
 /*************** CONSTRUCTORS ******************************/
 			Constructor[] constructors = c.getDeclaredConstructors();
@@ -51,21 +60,28 @@ public class Inspector {
 				System.out.println(tabs + "Constructors of " + c.getName());
 			}
 			
-/*************** names ******************************/
+
 			for(int i = 0; i < constructors.length; i++) {
-				System.out.println(tabs + "--" + constructors[i].getName());
-				
-/*************** parameters ******************************/
-				Class[] constParams = constructors[i].getParameterTypes();
-				for(int j = 0; j < constParams.length; j++) {
-					System.out.println(tabs + "---" + constParams[j].getName());
-				}
 				
 /*************** modifiers ******************************/
 				int constModifier = constructors[i].getModifiers();
-				System.out.println(tabs + "----" + constructors[i].getName() + " modifier: " + Modifier.toString(constModifier));
+				System.out.print(tabs + " " + Modifier.toString(constModifier));
+
+/*************** names ******************************/				
+				System.out.println(" " + constructors[i].getName());
+				
+/*************** parameters ******************************/
+				Class[] constParams = constructors[i].getParameterTypes();
+				if(constParams.length > 0) {
+					System.out.println(tabs + "  Parameters: ");
+				}
+				for(int j = 0; j < constParams.length; j++) {
+					System.out.println(tabs + "   " + constParams[j].getName());
+				}
+				
+
 			}
-			
+			System.out.println("");
 
 /*************** METHODS ******************************/
 			
@@ -74,49 +90,59 @@ public class Inspector {
 				System.out.println(tabs + "Methods of " + c.getName());
 			}
 			
-/*************** name******************************/
 			for(int i = 0; i < methods.length; i++) {
-				System.out.println(tabs + "-" + methods[i].getName());
+
+/*************** modifiers ******************************/
+			    int methModifier = methods[i].getModifiers();
+			    System.out.print(tabs + " " + Modifier.toString(methModifier));
+			    
+/*************** return type ******************************/
+			    Class methReturn = methods[i].getReturnType();
+			    System.out.print( " " + methReturn.getName());
+				
+/*************** name******************************/				
+				System.out.println(" " + methods[i].getName());
 				
 /*************** exceptions thrown ******************************/
 				Class[] exceptions = methods[i].getExceptionTypes();
+				if(exceptions.length > 0) {
+					System.out.println(tabs + "  Throws: ");
+				}
 				for(int j = 0; j < exceptions.length; j++) {
-					System.out.println(tabs + "--" + exceptions[j].getName());
+					System.out.println(tabs + "   " + exceptions[j].getName());
 				}
 			
 /*************** parameters ******************************/
 				
 				Class[] methParams = methods[i].getParameterTypes();
-				for(int j = 0; j < methParams.length; j++) {
-					System.out.println(tabs + "---" + methParams[j].getName());
+				if(methParams.length > 0) {
+					System.out.println(tabs + "  Parameters: ");
 				}
-				
-/*************** return type ******************************/
-			    Class methReturn = methods[i].getReturnType();
-			    System.out.println(tabs + " " + methReturn.getName());
+				for(int j = 0; j < methParams.length; j++) {
+					System.out.println(tabs + "   " + methParams[j].getName());
+				}
 			    
-/*************** modifiers ******************************/
-			    int methModifier = methods[i].getModifiers();
-			    System.out.println(tabs + "-" + methods[i].getName() + " modifier: " + Modifier.toString(methModifier));
 			}
 			
+			System.out.println("");
 /*************** FIELDS ******************************/
 			
 			Field[] fields = c.getDeclaredFields();
 			if(fields.length > 0) {
 				System.out.println(tabs + "Fields of " + c.getName());
 			}
-/*************** name ******************************/
 			
 			for(int i = 0; i < fields.length; i++) {
-				System.out.println(tabs + " " + fields[i].getName());
-				
-/*************** type ******************************/
-				System.out.println(tabs + "  " + fields[i].getType().getName());
 				
 /*************** modifiers ******************************/
 				int fieldModifier = fields[i].getModifiers();
-				System.out.println(tabs + "  " + fields[i].getName() + " modifier: " + Modifier.toString(fieldModifier));
+				System.out.print(tabs + " " + Modifier.toString(fieldModifier));
+				
+/*************** type ******************************/
+				System.out.print(" " + fields[i].getType().getName());
+				
+/*************** name ******************************/
+				System.out.print(" " + fields[i].getName());
 				
 /*************** value ******************************/
 				if(obj != null) {
@@ -125,36 +151,42 @@ public class Inspector {
 					Object instance = fields[i].get(obj);
 					if(instance != null) {
 						
-						if(recursive) {
-							System.out.println(tabs + "Stepping into field: " + fields[i].getName()+ "@" + Integer.toHexString(System.identityHashCode(instance)));
-							inspectClass(instance.getClass(), instance, recursive, depth+1);
-						}
+						boolean isObj = true;
 						
 						//Dealing with array
 						if(instance.getClass().isArray()) {
 							int length = Array.getLength(instance);
+							System.out.print(" = [");
 							for ( int k = 0; k < length; k++ ) {
 								Object element = Array.get(instance, k);
 								if(element.getClass().isPrimitive()) {
-									System.out.println(tabs + " " + element);
+									System.out.print(element);
 								}
 								else {
-									System.out.println(tabs + " " + Integer.toHexString(System.identityHashCode(element)));
+									System.out.println(Integer.toHexString(System.identityHashCode(element)));
 								}
-								
-								
+								if(k < length-1) {
+									System.out.print(",");
+								}
 							}
+							System.out.println("]");
 						}
 						
 						//dealing with objects
 						else if(!fields[i].getType().isPrimitive()) {
-							System.out.println(tabs + " " + instance.getClass().getName()+ "@" + Integer.toHexString(System.identityHashCode(instance)));
+							System.out.println(" = " + instance.getClass().getName()+ "@" + Integer.toHexString(System.identityHashCode(instance)));
 							
 						}
 						
 						//dealing with primitives
 						else {
-							System.out.println(tabs + " = " + instance);
+							System.out.println(" = " + instance);
+							isObj = false;
+						}
+						
+						if(recursive && isObj) {
+							System.out.println(tabs + "Stepping into field: " + fields[i].getName()+ "@" + Integer.toHexString(System.identityHashCode(instance)));
+							inspectClass(null, instance, recursive, depth+1);
 						}
 						
 						
@@ -163,24 +195,13 @@ public class Inspector {
 						
 					}
 					else {
-						System.out.println(tabs + " = " + instance);
+						System.out.println(" = " + instance);
 					}
 				}
-				
-				
-				
 			}
-			    //current val of each field
-			        //if field is an object ref, and recursive is set to false,
-			        //  print out "reference value" directly
-			        //  (name of object's class + identity hash code
-			
-			    //if recursive is true, inspect each field/array obj as well.
-			
-//			Field[] fields = c.getDeclaredFields();
 		}
 		catch (Exception e){
-			System.out.println("exception: " + e);
+			System.out.println("Program quit due to exception: " + e);
 			e.printStackTrace();
 		}
 		
