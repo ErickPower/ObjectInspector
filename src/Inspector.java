@@ -11,10 +11,8 @@ public class Inspector {
 	
 	//TODO: change to pass current object instead of null
 	private void inspectClass(Class c, Object obj, boolean recursive, int depth) {
-		if(c == null) {
-			c = obj.getClass();
-		}
 		try {
+			recursive = false;
 			String tabs = new String(new char[depth]).replace("\0", "\t"); //Code from https://stackoverflow.com/a/4903603
 			
 /*************** DECLARING CLASS ******************************/
@@ -26,8 +24,8 @@ public class Inspector {
 			
 /*************** explore superclass ******************************/
 			if(superClass != null) {
-				System.out.println(tabs + "Superclass: " + superClass.getName());
-				inspectClass(c.getSuperclass(), null, recursive, depth+1);
+				System.out.println(tabs + "Stepping into superclass: " + superClass.getName());
+				inspectClass(c.getSuperclass(), obj, recursive, depth+1);
 			}
 			
 			
@@ -42,7 +40,8 @@ public class Inspector {
 
 /*************** explore interfaces ******************************/
 			for(int i = 0; i < interfaces.length; i++) {
-				inspectClass(c.getSuperclass(), null, recursive, depth+1);
+				System.out.println(tabs + "Stepping into interface: " + interfaces[i].getName());
+				inspectClass(interfaces[i], obj, recursive, depth+1);
 			}
 			
 			
@@ -120,6 +119,54 @@ public class Inspector {
 				System.out.println(tabs + "  " + fields[i].getName() + " modifier: " + Modifier.toString(fieldModifier));
 				
 /*************** value ******************************/
+				if(obj != null) {
+					fields[i].setAccessible(true);
+					
+					Object instance = fields[i].get(obj);
+					if(instance != null) {
+						
+						if(recursive) {
+							System.out.println(tabs + "Stepping into field: " + fields[i].getName()+ "@" + Integer.toHexString(System.identityHashCode(instance)));
+							inspectClass(instance.getClass(), instance, recursive, depth+1);
+						}
+						
+						//Dealing with array
+						if(instance.getClass().isArray()) {
+							int length = Array.getLength(instance);
+							for ( int k = 0; k < length; k++ ) {
+								Object element = Array.get(instance, k);
+								if(element.getClass().isPrimitive()) {
+									System.out.println(tabs + " " + element);
+								}
+								else {
+									System.out.println(tabs + " " + Integer.toHexString(System.identityHashCode(element)));
+								}
+								
+								
+							}
+						}
+						
+						//dealing with objects
+						else if(!fields[i].getType().isPrimitive()) {
+							System.out.println(tabs + " " + instance.getClass().getName()+ "@" + Integer.toHexString(System.identityHashCode(instance)));
+							
+						}
+						
+						//dealing with primitives
+						else {
+							System.out.println(tabs + " = " + instance);
+						}
+						
+						
+						
+						
+						
+					}
+					else {
+						System.out.println(tabs + " = " + instance);
+					}
+				}
+				
 				
 				
 			}
